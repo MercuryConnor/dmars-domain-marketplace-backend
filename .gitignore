@@ -61,3 +61,8 @@ htmlcov/
 
 # Logs
 *.log
+
+
+# Local verification & ad-hoc test scripts
+test_*.py
+verify_*.py
