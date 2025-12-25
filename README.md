@@ -1,85 +1,198 @@
-# DMARS — Domain Marketplace Analytics & Recommendation System
+# Domain Marketplace Analytics & Recommendation System (DMARS)
 
-A production-style backend analytics system for managing and recommending domain marketplace listings.
+DMARS is a **production-style backend system** that simulates how a real **domain marketplace** analyzes performance, measures demand, and ranks listings using **explainable, data-driven logic**.
 
-## Project Description
+The project is intentionally built with an **engineering-first approach**, focusing on clean architecture, SQL-driven analytics, and deterministic ranking instead of black-box machine learning.
 
-DMARS is a backend-first analytics platform that stores domain marketplace data, computes key business metrics (KPIs), and provides explainable ranking and recommendation logic. Built with FastAPI, SQLAlchemy, and a focus on clean architecture and SQL-first analytics.
+## Why This Project Exists
 
-## Setup Instructions
+Many student projects jump directly to machine learning models without understanding how **real marketplaces actually operate**.
 
-### Prerequisites
-- Python 3.9+
-- pip
+In real product teams, systems are built in stages:
+1. Data is modeled correctly
+2. Clean APIs are exposed
+3. Business KPIs are measured
+4. Ranking logic is introduced
+5. Machine learning comes later, if justified
 
-### Backend Setup
+DMARS follows this **real-world progression**, mirroring how marketplace platforms evolve in production.
 
-1. **Install dependencies:**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
+## What This System Does
 
-2. **Run the FastAPI server:**
-   ```bash
-   uvicorn app.main:app --reload
-   ```
+DMARS models a domain marketplace similar to platforms that sell brandable domain names.
 
-   The API will be available at `http://localhost:8000`
-   - Interactive API docs: `http://localhost:8000/docs`
-   - Health check: `http://localhost:8000/health`
+It is designed to answer questions such as:
+- How is the marketplace performing overall?
+- Which categories convert better?
+- Which domains should be shown first, and why?
+- How do price, engagement, and relevance affect ranking?
 
-### Dashboard Setup
+All insights are computed **dynamically** and are **fully explainable**.
 
-1. **Install Streamlit (if not already installed):**
-   ```bash
-   pip install streamlit
-   ```
-
-2. **Run the dashboard:**
-   ```bash
-   streamlit run dashboard/app.py
-   ```
-
-   The dashboard will open at `http://localhost:8501`
-
-## Project Structure
+## High-Level Architecture
 
 ```
-DMARS/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py           # Package initialization
-│   │   ├── main.py               # FastAPI app entry point
-│   │   ├── database.py           # SQLAlchemy configuration
-│   │   ├── models.py             # ORM models
-│   │   ├── schemas.py            # Pydantic schemas
-│   │   ├── crud.py               # Database operations
-│   │   ├── analytics.py          # KPI calculations
-│   │   ├── ranking.py            # Ranking/recommendation logic
-│   │   └── seed.py               # Database seeding
-│   └── requirements.txt          # Python dependencies
-├── dashboard/
-│   └── app.py                    # Streamlit dashboard
-├── data/
-│   └── sample_domains.csv        # Sample domain data
-├── RULE.md                       # Design and development rules
-└── README.md                     # This file
+┌─────────────────────────┐
+│        FastAPI           │
+│  REST APIs (Read/Write)  │
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│        CRUD Layer        │
+│   Safe DB operations     │
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│     Analytics Layer      │
+│  KPIs & marketplace data │
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│ Ranking & Recommendation │
+│  Explainable scoring     │
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│     SQLite Database      │
+│   (No derived metrics)   │
+└─────────────────────────┘
 ```
 
-## Current Phase
+The system is intentionally layered to maintain separation of concerns and long-term maintainability.
 
-**Phase 1: Repository & Environment Setup** ✓ Complete
+## Core Features
 
-Subsequent phases will include:
-- Phase 2: Database models and schemas
-- Phase 3: CRUD operations and basic endpoints
-- Phase 4: Analytics computations
-- Phase 5: Ranking and recommendation logic
-- Phase 6: Dashboard integration
+### Clean Data Modeling
+- Single normalized `Domain` entity
+- No derived metrics stored in the database
+- Analytics computed on demand
 
-## Notes
+### CRUD APIs
+- Create, read, update, and delete domain listings
+- Pagination and filtering support
+- Proper HTTP status codes and error handling
 
-- Database URL is configurable via `DATABASE_URL` environment variable
-- Default: SQLite (`dmars.db`)
-- Can be switched to PostgreSQL or other databases
+### Marketplace Analytics
+
+**Global KPIs:**
+- Total domains
+- Sold domains
+- Conversion rate
+- Average domain price
+
+**Category-level analytics:**
+- Conversion rate per category
+- Pricing trends
+- Volume distribution
+
+**Demand indicators:**
+- High-interest unsold domains
+- Price versus engagement patterns
+
+### Explainable Ranking Engine
+
+Domains are ranked using deterministic, rule-based logic.
+
+Ranking signals include:
+- Keyword relevance
+- Engagement (click-through rate)
+- Price competitiveness within category
+- Conversion signals
+
+Each recommendation includes:
+- Final score (0–100)
+- Component-wise score breakdown
+- Human-readable explanation
+
+## API Overview
+
+### Domain APIs
+```
+POST   /domains
+GET    /domains
+GET    /domains/{id}
+PATCH  /domains/{id}
+DELETE /domains/{id}
+```
+
+### Analytics APIs (Read-only)
+```
+GET /analytics/summary
+GET /analytics/categories
+GET /analytics/demand
+```
+
+### Recommendation APIs (Read-only)
+```
+GET /recommendations/top
+GET /recommendations/category/{category}
+```
+
+## Tech Stack
+
+```
+- Language: Python
+- Framework: FastAPI
+- Database: SQLite
+- ORM: SQLAlchemy
+- Validation: Pydantic
+- Architecture: Layered (Models → CRUD → Analytics → Ranking → API)
+```
+
+## How to Run Locally
+
+```bash
+git clone https://github.com/MercuryConnor/dmars-domain-marketplace-backend.git
+cd dmars-domain-marketplace-backend
+
+pip install -r backend/requirements.txt
+
+cd backend
+uvicorn app.main:app --reload
+```
+
+API documentation is available at:
+```
+- http://localhost:8000/docs
+```
+
+Health check endpoint:
+```
+- http://localhost:8000/health
+```
+
+## Engineering Decisions
+
+### Why no machine learning?
+- Real marketplaces begin with rules and analytics
+- Deterministic ranking is easier to debug and trust
+- Machine learning is useful only after sufficient behavioral data exists
+
+### Why SQL-first analytics?
+- Aggregations are easier to reason about in SQL
+- Avoids storing inconsistent derived metrics
+- Improves correctness and transparency
+
+### Why phased development?
+
+The project was built in explicit phases:
+1. Infrastructure setup
+2. Data contracts
+3. CRUD APIs
+4. Analytics
+5. Ranking and recommendations
+
+This mirrors real engineering workflows.
+
+## Future Improvements
+
+- A/B testing of ranking strategies
+- Offline evaluation metrics
+- Machine-learning-based ranking once sufficient data is available
+- Caching for high-traffic endpoints
+
+## Final Note
+
+DMARS is not a demo or tutorial project.
+
+It is designed to reflect how **backend and data systems are actually built, evaluated, and evolved in production marketplace environments**.
